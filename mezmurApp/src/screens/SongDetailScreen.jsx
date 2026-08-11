@@ -1,46 +1,29 @@
 import React, { useState, useEffect } from "react";
 import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import {
   ArrowLeft,
   Star,
   Play,
   Pause,
   Square,
-  Volume2,
   Type,
   Music,
   BookOpen,
-} from "lucide-react";
+} from "lucide-react-native";
 import { AudioSynth } from "../utils/audioSynth";
 
 /**
- * SongDetailScreen Component
+ * SongDetailScreen Component (React Native)
  * 
- * Displays the full view of a hymn, including lyrics, details, font-size adjustment,
- * and an interactive synthesizer player.
- * Features:
- * - Back button navigation.
- * - Toggle favorite status within detail view.
- * - Font-size adjustment controls (incremental +/-) for high readability.
- * - Synthesizer player control (play, pause, stop, volume adjustment) running the Web Audio API.
- * - Interactive visualizer overlay showing the current note being played (e.g. Do, Re, Mi) and frequency.
+ * Displays full details, lyric verses, font-size adjustment, and audio synthesis controls.
  * 
  * @component
- * @param {Object} props - Component properties.
- * @param {Object} props.song - Song detail object.
- * @param {string} props.song.id - Unique ID of the song.
- * @param {number} props.song.number - The hymnal index number.
- * @param {string} props.song.title - The title of the hymn.
- * @param {string} props.song.category - The category of the hymn.
- * @param {string} props.song.lyrics - The full lyric string (newline separated).
- * @param {number} props.song.melodyIndex - The index mapping to the pentatonic scale/hymn pattern.
- * @param {string} [props.song.author] - Optional composer/source.
- * @param {string} [props.song.album] - Optional album information.
- * @param {boolean} props.isFavorite - Flag indicating if this song is a favorite.
- * @param {Function} props.onToggleFavorite - Callback to toggle favorite status.
- * @param {Function} props.onBack - Callback to navigate back to list screen.
- * @param {number} props.fontSize - The current active font size in pixels.
- * @param {Function} props.setFontSize - Setter function for the font size state.
- * @returns {React.ReactElement} The hymn detail screen.
  */
 export default function SongDetailScreen({
   song,
@@ -55,17 +38,12 @@ export default function SongDetailScreen({
   const [duration, setDuration] = useState(0);
   const [currentNote, setCurrentNote] = useState(null);
   const [currentFreq, setCurrentFreq] = useState(null);
-  const [volume, setVolume] = useState(0.5);
 
   useEffect(() => {
     return () => {
       AudioSynth.stop();
     };
   }, [song.id]);
-
-  useEffect(() => {
-    AudioSynth.setVolume(volume);
-  }, [volume]);
 
   const handlePlayPause = () => {
     if (isPlaying) {
@@ -116,210 +94,458 @@ export default function SongDetailScreen({
   };
 
   return (
-    <div className="max-w-3xl mx-auto pb-40 space-y-6">
-      <div className="flex items-center justify-between">
-        <button
-          id="detail-back-btn"
-          onClick={onBack}
-          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 font-sans text-xs font-bold text-zinc-700 shadow-sm transition-all hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 cursor-pointer"
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Navigation & Actions Row */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={onBack}
+          style={styles.backButton}
         >
-          <ArrowLeft className="h-4 w-4" />
-          ተመለስ
-        </button>
+          <ArrowLeft size={16} color="#3f3f46" />
+          <Text style={styles.backButtonText}>ተመለስ</Text>
+        </TouchableOpacity>
 
-        <div className="flex items-center gap-2">
-          <button
-            id="detail-favorite-toggle"
-            onClick={onToggleFavorite}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-              isFavorite
-                ? "border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
-                : "border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            }`}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={onToggleFavorite}
+          style={[styles.favButton, isFavorite && styles.favButtonActive]}
+        >
+          <Star
+            size={16}
+            color={isFavorite ? "#d97706" : "#71717a"}
+            fill={isFavorite ? "#d97706" : "transparent"}
+          />
+          <Text
+            style={[styles.favButtonText, isFavorite && styles.favButtonTextActive]}
           >
-            <Star
-              className="h-4 w-4"
-              fill={isFavorite ? "currentColor" : "none"}
-            />
-            <span>{isFavorite ? "ከተወደዱት አውጣ" : "ወደተወደዱት አክል"}</span>
-          </button>
-        </div>
-      </div>
+            {isFavorite ? "ከተወደዱት አውጣ" : "ወደተወደዱት አክል"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-      <div className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900 space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2.5 py-1 font-sans text-xs font-bold text-amber-800 dark:bg-amber-950/50 dark:text-amber-400">
-              መዝሙር #{song.number}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2.5 py-1 font-sans text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-              <BookOpen className="h-3.5 w-3.5 text-amber-600" />
-              {song.category}
-            </span>
-          </div>
+      {/* Header Info Card */}
+      <View style={styles.headerCard}>
+        <View style={styles.badgeRow}>
+          <View style={styles.numberBadge}>
+            <Text style={styles.numberBadgeText}>መዝሙር #{song.number}</Text>
+          </View>
+          <View style={styles.categoryBadge}>
+            <BookOpen size={12} color="#b45309" />
+            <Text style={styles.categoryBadgeText}>{song.category}</Text>
+          </View>
+        </View>
 
-          <h1 className="font-sans text-2xl md:text-3xl font-black text-zinc-900 dark:text-zinc-50 leading-tight">
-            {song.title}
-          </h1>
-        </div>
+        <Text style={styles.titleText}>{song.title}</Text>
 
         {(song.author || song.album) && (
-          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/60 font-sans text-xs">
+          <View style={styles.metaGrid}>
             {song.author && (
-              <div>
-                <span className="text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider block mb-0.5">
-                  ደራሲ / አቀናባሪ
-                </span>
-                <span className="text-zinc-800 dark:text-zinc-200 font-bold">
-                  {song.author}
-                </span>
-              </div>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>ደራሲ / አቀናባሪ</Text>
+                <Text style={styles.metaValue}>{song.author}</Text>
+              </View>
             )}
             {song.album && (
-              <div>
-                <span className="text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider block mb-0.5">
-                  አልበም
-                </span>
-                <span className="text-zinc-800 dark:text-zinc-200 font-bold">
-                  {song.album}
-                </span>
-              </div>
+              <View style={styles.metaItem}>
+                <Text style={styles.metaLabel}>አልበም</Text>
+                <Text style={styles.metaValue}>{song.album}</Text>
+              </View>
             )}
-          </div>
+          </View>
         )}
-      </div>
+      </View>
 
-      <div className="flex items-center justify-between rounded-2xl border border-zinc-200/80 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800/80 dark:bg-zinc-900/50">
-        <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 font-sans text-xs font-bold">
-          <Type className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          የፊደል መጠን ማስተካከያ
-        </div>
+      {/* Font Size Adjuster Toolbar */}
+      <View style={styles.fontSizeToolbar}>
+        <View style={styles.fontSizeTitleRow}>
+          <Type size={16} color="#d97706" />
+          <Text style={styles.fontSizeTitle}>የፊደል መጠን ማስተካከያ</Text>
+        </View>
 
-        <div className="flex items-center gap-2">
-          <button
-            id="font-size-dec"
-            onClick={() => adjustFontSize(-2)}
+        <View style={styles.fontSizeControls}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => adjustFontSize(-2)}
             disabled={fontSize <= 14}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white border border-zinc-200 font-sans text-xs font-bold text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
-            title="አንስስ"
+            style={[styles.fontButton, fontSize <= 14 && styles.fontButtonDisabled]}
           >
-            A-
-          </button>
+            <Text style={styles.fontButtonText}>A-</Text>
+          </TouchableOpacity>
 
-          <span className="font-mono text-xs font-bold text-zinc-600 dark:text-zinc-300 px-1">
-            {fontSize}px
-          </span>
+          <Text style={styles.fontSizeValue}>{fontSize}px</Text>
 
-          <button
-            id="font-size-inc"
-            onClick={() => adjustFontSize(2)}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => adjustFontSize(2)}
             disabled={fontSize >= 38}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white border border-zinc-200 font-sans text-xs font-bold text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 cursor-pointer"
-            title="አልቅስ"
+            style={[styles.fontButton, fontSize >= 38 && styles.fontButtonDisabled]}
           >
-            A+
-          </button>
-        </div>
-      </div>
+            <Text style={styles.fontButtonText}>A+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <div className="rounded-3xl border border-zinc-200/80 bg-white p-6 sm:p-10 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-900 overflow-hidden relative">
-        <div
-          className="relative z-10 space-y-8 font-sans text-zinc-900 dark:text-zinc-100 leading-relaxed text-center mx-auto max-w-xl transition-all duration-200"
-          style={{ fontSize: `${fontSize}px` }}
-        >
-          {lyricStanzas.map((stanza, idx) => (
-            <div key={idx} className="whitespace-pre-line py-1 font-medium">
+      {/* Lyric Body Card */}
+      <View style={styles.lyricsCard}>
+        {lyricStanzas.map((stanza, idx) => (
+          <View key={idx} style={styles.stanzaBlock}>
+            <Text style={[styles.stanzaText, { fontSize: fontSize }]}>
               {stanza}
-            </div>
-          ))}
-        </div>
-      </div>
+            </Text>
+          </View>
+        ))}
+      </View>
 
-      <div className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/90 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-600 text-white shadow-sm ${isPlaying ? "animate-pulse" : ""}`}
-            >
-              <Music className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-amber-900 dark:text-amber-300">
-                የመዝሙር ዜማ እያጫወተ ነው
-              </h4>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+      {/* Synthesizer Audio Player Card */}
+      <View style={styles.playerCard}>
+        <View style={styles.playerTopRow}>
+          <View style={styles.playerInfoRow}>
+            <View style={styles.musicIconCircle}>
+              <Music size={18} color="#ffffff" />
+            </View>
+            <View style={styles.playerTextContainer}>
+              <Text style={styles.playerTitle}>የመዝሙር ዜማ እያጫወተ ነው</Text>
+              <Text style={styles.playerSubtitle}>
                 {isPlaying && currentNote
                   ? `ድምፅ: ${currentNote} (${currentFreq}Hz)`
                   : "የቅዱስ ያሬድ ቤተክርስቲያን ዜማ"}
-              </p>
-            </div>
-          </div>
+              </Text>
+            </View>
+          </View>
 
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <button
-              id="synth-play-pause-btn"
-              onClick={handlePlayPause}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 font-sans text-xs font-bold text-white shadow hover:bg-amber-700 transition-colors dark:bg-amber-500 dark:text-zinc-950 dark:hover:bg-amber-400 cursor-pointer"
+          <View style={styles.playerButtonsRow}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handlePlayPause}
+              style={styles.playButton}
             >
               {isPlaying ? (
-                <>
-                  <Pause className="h-4 w-4 fill-current" />
-                  <span>አቁም</span>
-                </>
+                <Pause size={16} color="#ffffff" fill="#ffffff" />
               ) : (
-                <>
-                  <Play className="h-4 w-4 fill-current" />
-                  <span>ዜማውን አጫውት</span>
-                </>
+                <Play size={16} color="#ffffff" fill="#ffffff" />
               )}
-            </button>
+              <Text style={styles.playButtonText}>
+                {isPlaying ? "አቁም" : "ዜማውን አጫውት"}
+              </Text>
+            </TouchableOpacity>
 
             {isPlaying && (
-              <button
-                id="synth-stop-btn"
-                onClick={handleStop}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300 cursor-pointer"
-                title="አቁም"
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleStop}
+                style={styles.stopButton}
               >
-                <Square className="h-3.5 w-3.5 fill-current" />
-              </button>
+                <Square size={14} color="#3f3f46" fill="#3f3f46" />
+              </TouchableOpacity>
             )}
-          </div>
-        </div>
+          </View>
+        </View>
 
         {isPlaying && (
-          <div className="flex items-center gap-3 pt-2 border-t border-amber-200/50 dark:border-zinc-800">
-            <span className="font-mono text-[11px] font-bold text-amber-800 dark:text-amber-400">
-              {formatTime(currentTime)}
-            </span>
-            <div className="flex-1 h-2 rounded-full bg-amber-200/60 dark:bg-zinc-800 overflow-hidden">
-              <div
-                className="h-full bg-amber-600 dark:bg-amber-500 rounded-full transition-all duration-300"
-                style={{
-                  width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
-                }}
+          <View style={styles.progressSection}>
+            <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${
+                      duration > 0 ? (currentTime / duration) * 100 : 0
+                    }%`,
+                  },
+                ]}
               />
-            </div>
-            <span className="font-mono text-[11px] font-bold text-amber-800 dark:text-amber-400">
-              {formatTime(duration)}
-            </span>
-
-            <div className="flex items-center gap-1.5 ml-2">
-              <Volume2 className="h-4 w-4 text-amber-700 dark:text-amber-400" />
-              <input
-                id="volume-slider"
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-16 accent-amber-600 dark:accent-amber-500 cursor-pointer h-1.5 rounded-full"
-              />
-            </div>
-          </div>
+            </View>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fafafa",
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 60,
+  },
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+  },
+  backButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#3f3f46",
+  },
+  favButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+  },
+  favButtonActive: {
+    backgroundColor: "#fef3c7",
+    borderColor: "#f59e0b",
+  },
+  favButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#71717a",
+  },
+  favButtonTextActive: {
+    color: "#b45309",
+  },
+  headerCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+  numberBadge: {
+    backgroundColor: "#fef3c7",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  numberBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#b45309",
+  },
+  categoryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f4f4f5",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  categoryBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#52525b",
+  },
+  titleText: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#18181b",
+    lineHeight: 28,
+    marginBottom: 12,
+  },
+  metaGrid: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: "#f4f4f5",
+    paddingTop: 12,
+    gap: 24,
+  },
+  metaItem: {
+    flex: 1,
+  },
+  metaLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#a1a1aa",
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  metaValue: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#27272a",
+  },
+  fontSizeToolbar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f4f4f5",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  fontSizeTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  fontSizeTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4b5563",
+  },
+  fontSizeControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  fontButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fontButtonDisabled: {
+    opacity: 0.4,
+  },
+  fontButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#3f3f46",
+  },
+  fontSizeValue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#52525b",
+  },
+  lyricsCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  stanzaBlock: {
+    marginBottom: 20,
+  },
+  stanzaText: {
+    fontWeight: "500",
+    color: "#18181b",
+    lineHeight: 32,
+    textAlign: "center",
+  },
+  playerCard: {
+    backgroundColor: "#fffbeb",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#fde68a",
+  },
+  playerTopRow: {
+    flexDirection: "column",
+    gap: 12,
+  },
+  playerInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  musicIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#d97706",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playerTextContainer: {
+    flex: 1,
+  },
+  playerTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#78350f",
+  },
+  playerSubtitle: {
+    fontSize: 11,
+    color: "#4b5563",
+  },
+  playerButtonsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    alignSelf: "flex-end",
+  },
+  playButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d97706",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 6,
+  },
+  playButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  stopButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  progressSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(245, 158, 11, 0.2)",
+    gap: 8,
+  },
+  timeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#78350f",
+  },
+  progressBarBackground: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#fef3c7",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#d97706",
+    borderRadius: 3,
+  },
+});

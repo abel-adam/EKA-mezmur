@@ -1,26 +1,22 @@
 import React, { useState, useMemo } from "react";
-import { Flame, Layers, Search, Star } from "lucide-react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import { Flame, Layers, Search, Star } from "lucide-react-native";
 import { SONGS_DATA } from "../data/songs.js";
 import SongCard from "../components/SongCard.jsx";
 
 /**
- * HomeScreen Component
+ * HomeScreen Component (React Native)
  * 
- * Serves as the landing dashboard for the application.
- * Highlights:
- * - A dynamic hero card displaying favorites count and application title.
- * - Interactive search input matching hymn titles, lyrics, numbers, categories, or composers.
- * - Category filter tabs extracted dynamically from the songs dataset.
- * - Grid display of filtered hymns.
+ * Main dashboard screen for browsing and searching traditional hymns.
  * 
  * @component
- * @param {Object} props - Component properties.
- * @param {Array<string>} props.favorites - Array of favorited song IDs.
- * @param {Function} props.onToggleFavorite - Callback to toggle favorite status of a song.
- * @param {Function} props.onNavigateToSongs - Callback to navigate to the full song list screen.
- * @param {Function} props.onNavigateToFavorites - Callback to navigate to the favorites filter view.
- * @param {Function} props.onSelectSong - Callback to select a song and open its detail view.
- * @returns {React.ReactElement} The dashboard view.
  */
 export default function HomeScreen({
   favorites,
@@ -59,117 +55,288 @@ export default function HomeScreen({
   }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 p-6 sm:p-8 text-white shadow-xl dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950 dark:border dark:border-zinc-800/80">
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-amber-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl" />
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Hero Header Card */}
+      <View style={styles.heroCard}>
+        <View style={styles.heroBadge}>
+          <Flame size={14} color="#fcd34d" />
+          <Text style={styles.heroBadgeText}>የኢትዮጵያ ኦርቶዶክስ ተዋሕዶ መዝሙራት</Text>
+        </View>
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2 max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-amber-300 backdrop-blur-sm">
-              <Flame className="h-4 w-4 text-amber-400 animate-pulse" />
-              የኢትዮጵያ ኦርቶዶክስ ተዋሕዶ መዝሙራት
-            </span>
-            <h1 className="font-sans text-2xl sm:text-3xl font-black tracking-tight">
-              የመዝሙር ደብተር
-            </h1>
-            <p className="text-amber-100/90 text-xs sm:text-sm font-medium font-sans leading-relaxed">
-              የቅዱስ ያሬድ፣ የካቴድራሎችና የመንፈሳዊ መዝሙራት ግጥሞችና ዜማዎች ስብስብ።
-            </p>
-          </div>
+        <Text style={styles.heroTitle}>የመዝሙር ደብተር</Text>
+        <Text style={styles.heroSubtitle}>
+          የቅዱስ ያሬድ፣ የካቴድራሎችና የመንፈሳዊ መዝሙራት ግጥሞችና ዜማዎች ስብስብ።
+        </Text>
 
-          <button
-            id="hero-favs-quick-btn"
-            onClick={onNavigateToFavorites}
-            className="self-start sm:self-auto shrink-0 inline-flex items-center gap-2 rounded-2xl bg-amber-900/60 border border-amber-500/30 px-4 py-2.5 text-xs font-bold text-amber-200 shadow-sm backdrop-blur-md transition-all duration-200 hover:bg-amber-800/70 hover:scale-[1.02] cursor-pointer"
-          >
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            የተወደዱ ({favorites.length})
-          </button>
-        </div>
-      </div>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onNavigateToFavorites}
+          style={styles.favQuickButton}
+        >
+          <Star size={16} color="#fbbf24" fill="#fbbf24" />
+          <Text style={styles.favQuickText}>የተወደዱ ({favorites.length})</Text>
+        </TouchableOpacity>
+      </View>
 
-      <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-sm space-y-4 dark:border-zinc-800/80 dark:bg-zinc-900">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
-          <input
-            id="home-song-search-input"
-            type="text"
+      {/* Search & Category Filter Section */}
+      <View style={styles.filterSection}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={18} color="#9ca3af" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
             placeholder="በመዝሙር ርዕስ፣ በቁጥር ወይም በግጥም ይፈልጉ..."
+            placeholderTextColor="#9ca3af"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-3 pl-12 pr-4 font-sans text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder-zinc-600 dark:focus:border-amber-500 dark:focus:bg-zinc-950"
+            onChangeText={setSearchQuery}
           />
-        </div>
+        </View>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-zinc-500 dark:text-zinc-400 px-1">
-            <span>መደቦች (Categories)</span>
-            <span>{displayedSongs.length} መዝሙራት</span>
-          </div>
+        {/* Categories Horizontal Scroll */}
+        <View style={styles.categoryHeaderRow}>
+          <Text style={styles.categoryTitle}>መደቦች (Categories)</Text>
+          <Text style={styles.categoryCount}>{displayedSongs.length} መዝሙራት</Text>
+        </View>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            <button
-              id="home-category-tab-all"
-              onClick={() => setSelectedCategory(null)}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 font-sans text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                selectedCategory === null
-                  ? "bg-amber-600 text-white shadow-sm dark:bg-amber-500 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700/60"
-              }`}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScroll}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setSelectedCategory(null)}
+            style={[
+              styles.categoryChip,
+              selectedCategory === null && styles.categoryChipActive,
+            ]}
+          >
+            <Layers
+              size={12}
+              color={selectedCategory === null ? "#ffffff" : "#4b5563"}
+            />
+            <Text
+              style={[
+                styles.categoryChipText,
+                selectedCategory === null && styles.categoryChipTextActive,
+              ]}
             >
-              <Layers className="h-3.5 w-3.5" />
               ሁሉም (All)
-            </button>
+            </Text>
+          </TouchableOpacity>
 
-            {categories.map((cat) => (
-              <button
-                id={`home-category-tab-${cat}`}
+          {categories.map((cat) => {
+            const isActive = selectedCategory === cat;
+            return (
+              <TouchableOpacity
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 font-sans text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  selectedCategory === cat
-                    ? "bg-amber-600 text-white shadow-sm dark:bg-amber-500 dark:text-zinc-950"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700/60"
-                }`}
+                activeOpacity={0.7}
+                onPress={() => setSelectedCategory(cat)}
+                style={[styles.categoryChip, isActive && styles.categoryChipActive]}
               >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    isActive && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-      <div className="space-y-3">
+      {/* Song List Grid */}
+      <View style={styles.songListSection}>
         {displayedSongs.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {displayedSongs.map((song) => (
-              <SongCard
-                key={song.id}
-                song={song}
-                isFavorite={favorites.includes(song.id)}
-                onToggleFavorite={() => onToggleFavorite(song.id)}
-                onClick={() => onSelectSong(song.id)}
-              />
-            ))}
-          </div>
+          displayedSongs.map((song) => (
+            <SongCard
+              key={song.id}
+              song={song}
+              isFavorite={favorites.includes(song.id)}
+              onToggleFavorite={() => onToggleFavorite(song.id)}
+              onClick={() => onSelectSong(song.id)}
+            />
+          ))
         ) : (
-          <div className="text-center py-12 px-4 border border-dashed border-zinc-200 rounded-3xl dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
-            <p className="font-sans text-sm font-bold text-zinc-700 dark:text-zinc-300">
-              በዚህ መደብ ምንም መዝሙር አልተገኘም
-            </p>
-            <button
-              onClick={() => {
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>በዚህ መደብ ምንም መዝሙር አልተገኘም</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
                 setSelectedCategory(null);
                 setSearchQuery("");
               }}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-amber-700 dark:bg-amber-500 dark:text-zinc-950 cursor-pointer"
+              style={styles.resetButton}
             >
-              ሁሉንም መዝሙራት አሳይ
-            </button>
-          </div>
+              <Text style={styles.resetButtonText}>ሁሉንም መዝሙራት አሳይ</Text>
+            </TouchableOpacity>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fafafa",
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  heroCard: {
+    backgroundColor: "#78350f",
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+  },
+  heroBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(251, 191, 36, 0.2)",
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+    marginBottom: 8,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#fde68a",
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#ffffff",
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    color: "#fef3c7",
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  favQuickButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(120, 53, 15, 0.7)",
+    borderWidth: 1,
+    borderColor: "rgba(251, 191, 36, 0.3)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+    gap: 6,
+  },
+  favQuickText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#fef3c7",
+  },
+  filterSection: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f4f4f5",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: "#18181b",
+  },
+  categoryHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  categoryTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7280",
+  },
+  categoryCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6b7280",
+  },
+  categoriesScroll: {
+    flexDirection: "row",
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 8,
+    gap: 6,
+  },
+  categoryChipActive: {
+    backgroundColor: "#d97706",
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4b5563",
+  },
+  categoryChipTextActive: {
+    color: "#ffffff",
+  },
+  songListSection: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 32,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  emptyText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#4b5563",
+    marginBottom: 12,
+  },
+  resetButton: {
+    backgroundColor: "#d97706",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  resetButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+});

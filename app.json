@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "የመዝሙር ደብተር (EKA Mezmur)",
+    "slug": "eka-mezmur",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#7c2d12"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#7c2d12"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

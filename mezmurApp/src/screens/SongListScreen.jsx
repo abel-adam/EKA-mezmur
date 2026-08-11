@@ -1,26 +1,22 @@
 import React, { useState, useMemo } from "react";
-import { Search, Star, Filter, RefreshCw, Layers } from "lucide-react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
+import { Search, Star, Filter, RefreshCw, Layers } from "lucide-react-native";
 import { SONGS_DATA } from "../data/songs.js";
 import SongCard from "../components/SongCard.jsx";
 
 /**
- * SongListScreen Component
+ * SongListScreen Component (React Native)
  * 
- * Provides a dedicated screen for browsing, searching, and filtering all hymns.
- * Features:
- * - Text-based search across titles, lyrics, categories, and composers.
- * - Exact-match search when inputting numeric values (matches song index).
- * - Categorization tabs.
- * - Quick toggle to display only favorited hymns.
- * - An option to reset all filters.
+ * Screen for browsing, searching, and filtering all hymns.
  * 
  * @component
- * @param {Object} props - Component properties.
- * @param {Array<string>} props.favorites - Array of favorited song IDs.
- * @param {boolean} [props.initialFavoritesFilter=false] - Initial state for the favorites-only filter.
- * @param {Function} props.onToggleFavorite - Callback to toggle favorite status.
- * @param {Function} props.onSelectSong - Callback to select a song and navigate to details.
- * @returns {React.ReactElement} The list browsing view.
  */
 export default function SongListScreen({
   favorites,
@@ -51,7 +47,7 @@ export default function SongListScreen({
 
       if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase().trim();
-        const numQuery = parseInt(query);
+        const numQuery = parseInt(query, 10);
 
         if (!isNaN(numQuery) && song.number === numQuery) {
           return true;
@@ -81,117 +77,303 @@ export default function SongListScreen({
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      <div className="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-sm space-y-4 dark:border-zinc-800/80 dark:bg-zinc-900">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
-          <input
-            id="song-search-input"
-            type="text"
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header Search & Filter Box */}
+      <View style={styles.filterCard}>
+        {/* Search Input */}
+        <View style={styles.searchContainer}>
+          <Search size={18} color="#9ca3af" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
             placeholder="በመዝሙር ርዕስ፣ በቁጥር ወይም በግጥም ይፈልጉ..."
+            placeholderTextColor="#9ca3af"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-3.5 pl-12 pr-4 font-sans text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder-zinc-600 dark:focus:border-amber-500 dark:focus:bg-zinc-950"
+            onChangeText={setSearchQuery}
           />
-        </div>
+        </View>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 shrink-0 max-w-full sm:max-w-[75%]">
-            <button
-              id="category-tab-all"
-              onClick={() => setSelectedCategory(null)}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 font-sans text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                selectedCategory === null
-                  ? "bg-amber-600 text-white shadow-sm dark:bg-amber-500 dark:text-zinc-950"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700/60"
-              }`}
+        {/* Category Scroll & Fav Switch */}
+        <View style={styles.filterRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setSelectedCategory(null)}
+              style={[
+                styles.chip,
+                selectedCategory === null && styles.chipActive,
+              ]}
             >
-              <Layers className="h-3.5 w-3.5" />
-              ሁሉንም መደቦች
-            </button>
-
-            {categories.map((cat) => (
-              <button
-                id={`category-tab-${cat}`}
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 font-sans text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  selectedCategory === cat
-                    ? "bg-amber-600 text-white shadow-sm dark:bg-amber-500 dark:text-zinc-950"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700/60"
-                }`}
+              <Layers
+                size={12}
+                color={selectedCategory === null ? "#ffffff" : "#4b5563"}
+              />
+              <Text
+                style={[
+                  styles.chipText,
+                  selectedCategory === null && styles.chipTextActive,
+                ]}
               >
-                {cat}
-              </button>
-            ))}
-          </div>
+                ሁሉንም መደቦች
+              </Text>
+            </TouchableOpacity>
 
-          <button
-            id="toggle-favs-only-btn"
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2 font-sans text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
-              showFavoritesOnly
-                ? "border-amber-500 bg-amber-50 text-amber-800 dark:border-amber-500/50 dark:bg-amber-950/40 dark:text-amber-400"
-                : "border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800/40"
-            }`}
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedCategory(cat)}
+                  style={[styles.chip, isActive && styles.chipActive]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isActive && styles.chipTextActive,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            style={[
+              styles.favToggleChip,
+              showFavoritesOnly && styles.favToggleChipActive,
+            ]}
           >
             <Star
-              className={`h-4 w-4 ${showFavoritesOnly ? "fill-current text-amber-500" : ""}`}
+              size={14}
+              color={showFavoritesOnly ? "#d97706" : "#4b5563"}
+              fill={showFavoritesOnly ? "#d97706" : "transparent"}
             />
-            የተወደዱ ብቻ
-          </button>
-        </div>
-      </div>
+            <Text
+              style={[
+                styles.favToggleText,
+                showFavoritesOnly && styles.favToggleTextActive,
+              ]}
+            >
+              የተወደዱ ብቻ
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <div className="flex items-center justify-between px-2">
-        <span className="font-sans text-xs font-bold text-zinc-500 dark:text-zinc-400">
+      {/* Info Status Row */}
+      <View style={styles.statusRow}>
+        <Text style={styles.statusCount}>
           {filteredSongs.length} መዝሙራት ተገኝተዋል
-        </span>
+        </Text>
 
         {(selectedCategory || searchQuery || showFavoritesOnly) && (
-          <button
-            onClick={handleClearFilters}
-            className="font-sans text-xs font-bold text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 flex items-center gap-1.5 cursor-pointer"
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleClearFilters}
+            style={styles.clearButton}
           >
-            <RefreshCw className="h-3.5 w-3.5" />
-            ማጣሪያዎችን አጽዳ
-          </button>
+            <RefreshCw size={12} color="#b45309" />
+            <Text style={styles.clearButtonText}>ማጣሪያዎችን አጽዳ</Text>
+          </TouchableOpacity>
         )}
-      </div>
+      </View>
 
+      {/* Song List Items */}
       {filteredSongs.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {filteredSongs.map((song) => (
-            <SongCard
-              key={song.id}
-              song={song}
-              isFavorite={favorites.includes(song.id)}
-              onToggleFavorite={() => onToggleFavorite(song.id)}
-              onClick={() => onSelectSong(song.id)}
-            />
-          ))}
-        </div>
+        filteredSongs.map((song) => (
+          <SongCard
+            key={song.id}
+            song={song}
+            isFavorite={favorites.includes(song.id)}
+            onToggleFavorite={() => onToggleFavorite(song.id)}
+            onClick={() => onSelectSong(song.id)}
+          />
+        ))
       ) : (
-        <div className="text-center py-16 px-4 border border-dashed border-zinc-200 rounded-3xl dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
-          <div className="mx-auto w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4 dark:bg-amber-950/30">
-            <Filter className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-          </div>
-          <h3 className="font-sans text-lg font-bold text-zinc-900 dark:text-zinc-50">
-            ምንም መዝሙር አልተገኘም
-          </h3>
-          <p className="font-sans text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+        <View style={styles.emptyCard}>
+          <View style={styles.emptyIconCircle}>
+            <Filter size={24} color="#b45309" />
+          </View>
+          <Text style={styles.emptyTitle}>ምንም መዝሙር አልተገኘም</Text>
+          <Text style={styles.emptySubtitle}>
             እባክዎ ሌላ ቃል ይሞክሩ ወይም ማጣሪያዎቹን ያጽዱ።
-          </p>
+          </Text>
+
           {(selectedCategory || searchQuery || showFavoritesOnly) && (
-            <button
-              onClick={handleClearFilters}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-amber-600 text-white px-5 py-2.5 text-xs font-bold transition-all duration-200 hover:bg-amber-700 dark:bg-amber-500 dark:text-zinc-950 dark:hover:bg-amber-400 cursor-pointer"
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleClearFilters}
+              style={styles.emptyClearButton}
             >
-              ማጣሪያዎችን አጽዳ
-            </button>
+              <Text style={styles.emptyClearButtonText}>ማጣሪያዎችን አጽዳ</Text>
+            </TouchableOpacity>
           )}
-        </div>
+        </View>
       )}
-    </div>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fafafa",
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  filterCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f4f4f5",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: "#18181b",
+  },
+  filterRow: {
+    gap: 8,
+  },
+  categoryScroll: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 8,
+    gap: 6,
+  },
+  chipActive: {
+    backgroundColor: "#d97706",
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4b5563",
+  },
+  chipTextActive: {
+    color: "#ffffff",
+  },
+  favToggleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+  },
+  favToggleChipActive: {
+    backgroundColor: "#fef3c7",
+    borderColor: "#f59e0b",
+  },
+  favToggleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4b5563",
+  },
+  favToggleTextActive: {
+    color: "#b45309",
+  },
+  statusRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  statusCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#71717a",
+  },
+  clearButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  clearButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#b45309",
+  },
+  emptyCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+  },
+  emptyIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fef3c7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#18181b",
+    marginBottom: 4,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: "#71717a",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  emptyClearButton: {
+    backgroundColor: "#d97706",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  emptyClearButtonText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+});

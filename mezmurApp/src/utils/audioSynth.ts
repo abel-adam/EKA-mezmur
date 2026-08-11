@@ -44,15 +44,18 @@ const HYMN_PATTERNS = [
 
 export const AudioSynth = {
   init() {
+    if (typeof window === "undefined") return;
     if (!audioCtx) {
       const AudioContextClass =
-        window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContextClass();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      masterGain.connect(audioCtx.destination);
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+      }
     }
-    if (audioCtx.state === "suspended") {
+    if (audioCtx && audioCtx.state === "suspended") {
       audioCtx.resume();
     }
   },
