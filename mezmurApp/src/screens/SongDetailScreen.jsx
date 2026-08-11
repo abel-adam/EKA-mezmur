@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,21 +9,22 @@ import {
 import {
   ArrowLeft,
   Star,
-  Play,
-  Pause,
-  Square,
   Type,
-  Music,
   BookOpen,
 } from "lucide-react-native";
-import { AudioSynth } from "../utils/audioSynth";
 
 /**
  * SongDetailScreen Component (React Native)
- * 
- * Displays full details, lyric verses, font-size adjustment, and audio synthesis controls.
- * 
+ *
+ * Displays full details, lyric verses, and font-size adjustment.
+ *
  * @component
+ * @param {Object} props.song - Song detail object.
+ * @param {boolean} props.isFavorite - Favorite flag.
+ * @param {Function} props.onToggleFavorite - Toggle callback.
+ * @param {Function} props.onBack - Navigate back callback.
+ * @param {number} props.fontSize - Current font size in px.
+ * @param {Function} props.setFontSize - Setter for font size.
  */
 export default function SongDetailScreen({
   song,
@@ -33,65 +34,12 @@ export default function SongDetailScreen({
   fontSize,
   setFontSize,
 }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentNote, setCurrentNote] = useState(null);
-  const [currentFreq, setCurrentFreq] = useState(null);
-
-  useEffect(() => {
-    return () => {
-      AudioSynth.stop();
-    };
-  }, [song.id]);
-
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      AudioSynth.stop();
-      setIsPlaying(false);
-      setCurrentNote(null);
-      setCurrentFreq(null);
-    } else {
-      setIsPlaying(true);
-      AudioSynth.play(song.melodyIndex, {
-        onNotePlay: (noteName, frequency) => {
-          setCurrentNote(noteName);
-          setCurrentFreq(Math.round(frequency));
-        },
-        onTimeUpdate: (current, total) => {
-          setCurrentTime(current);
-          setDuration(total);
-        },
-        onEnded: () => {
-          setIsPlaying(false);
-          setCurrentNote(null);
-          setCurrentFreq(null);
-          setCurrentTime(0);
-        },
-      });
-    }
-  };
-
-  const handleStop = () => {
-    AudioSynth.stop();
-    setIsPlaying(false);
-    setCurrentNote(null);
-    setCurrentFreq(null);
-    setCurrentTime(0);
-  };
-
   const adjustFontSize = (increment) => {
     const newSize = Math.max(14, Math.min(38, fontSize + increment));
     setFontSize(newSize);
   };
 
   const lyricStanzas = song.lyrics.split("\n\n");
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
 
   return (
     <ScrollView
@@ -121,7 +69,10 @@ export default function SongDetailScreen({
             fill={isFavorite ? "#d97706" : "transparent"}
           />
           <Text
-            style={[styles.favButtonText, isFavorite && styles.favButtonTextActive]}
+            style={[
+              styles.favButtonText,
+              isFavorite && styles.favButtonTextActive,
+            ]}
           >
             {isFavorite ? "ከተወደዱት አውጣ" : "ወደተወደዱት አክል"}
           </Text>
@@ -172,7 +123,10 @@ export default function SongDetailScreen({
             activeOpacity={0.7}
             onPress={() => adjustFontSize(-2)}
             disabled={fontSize <= 14}
-            style={[styles.fontButton, fontSize <= 14 && styles.fontButtonDisabled]}
+            style={[
+              styles.fontButton,
+              fontSize <= 14 && styles.fontButtonDisabled,
+            ]}
           >
             <Text style={styles.fontButtonText}>A-</Text>
           </TouchableOpacity>
@@ -183,7 +137,10 @@ export default function SongDetailScreen({
             activeOpacity={0.7}
             onPress={() => adjustFontSize(2)}
             disabled={fontSize >= 38}
-            style={[styles.fontButton, fontSize >= 38 && styles.fontButtonDisabled]}
+            style={[
+              styles.fontButton,
+              fontSize >= 38 && styles.fontButtonDisabled,
+            ]}
           >
             <Text style={styles.fontButtonText}>A+</Text>
           </TouchableOpacity>
@@ -199,71 +156,6 @@ export default function SongDetailScreen({
             </Text>
           </View>
         ))}
-      </View>
-
-      {/* Synthesizer Audio Player Card */}
-      <View style={styles.playerCard}>
-        <View style={styles.playerTopRow}>
-          <View style={styles.playerInfoRow}>
-            <View style={styles.musicIconCircle}>
-              <Music size={18} color="#ffffff" />
-            </View>
-            <View style={styles.playerTextContainer}>
-              <Text style={styles.playerTitle}>የመዝሙር ዜማ እያጫወተ ነው</Text>
-              <Text style={styles.playerSubtitle}>
-                {isPlaying && currentNote
-                  ? `ድምፅ: ${currentNote} (${currentFreq}Hz)`
-                  : "የቅዱስ ያሬድ ቤተክርስቲያን ዜማ"}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.playerButtonsRow}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handlePlayPause}
-              style={styles.playButton}
-            >
-              {isPlaying ? (
-                <Pause size={16} color="#ffffff" fill="#ffffff" />
-              ) : (
-                <Play size={16} color="#ffffff" fill="#ffffff" />
-              )}
-              <Text style={styles.playButtonText}>
-                {isPlaying ? "አቁም" : "ዜማውን አጫውት"}
-              </Text>
-            </TouchableOpacity>
-
-            {isPlaying && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleStop}
-                style={styles.stopButton}
-              >
-                <Square size={14} color="#3f3f46" fill="#3f3f46" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {isPlaying && (
-          <View style={styles.progressSection}>
-            <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${
-                      duration > 0 ? (currentTime / duration) * 100 : 0
-                    }%`,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.timeText}>{formatTime(duration)}</Text>
-          </View>
-        )}
       </View>
     </ScrollView>
   );
@@ -443,7 +335,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 24,
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: "#f3f4f6",
   },
@@ -455,97 +346,5 @@ const styles = StyleSheet.create({
     color: "#18181b",
     lineHeight: 32,
     textAlign: "center",
-  },
-  playerCard: {
-    backgroundColor: "#fffbeb",
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#fde68a",
-  },
-  playerTopRow: {
-    flexDirection: "column",
-    gap: 12,
-  },
-  playerInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  musicIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#d97706",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  playerTextContainer: {
-    flex: 1,
-  },
-  playerTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#78350f",
-  },
-  playerSubtitle: {
-    fontSize: 11,
-    color: "#4b5563",
-  },
-  playerButtonsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    alignSelf: "flex-end",
-  },
-  playButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#d97706",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    gap: 6,
-  },
-  playButtonText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  stopButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e4e4e7",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  progressSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(245, 158, 11, 0.2)",
-    gap: 8,
-  },
-  timeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#78350f",
-  },
-  progressBarBackground: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#fef3c7",
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#d97706",
-    borderRadius: 3,
   },
 });
